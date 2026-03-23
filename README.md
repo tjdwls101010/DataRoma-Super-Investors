@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="https://png.pngtree.com/png-vector/20250423/ourmid/pngtree-stack-of-money-bundles-neatly-arranged-for-wealth-concept-png-image_16082003.png" width="120" alt="Money">
+
 # superinvestor
 
 **Track what legendary investors buy and sell together.**
@@ -13,6 +15,8 @@ The only pip-installable library for superinvestor consensus data — see where 
 [Installation](#installation) · [Quick Start](#quick-start) · [API Reference](#api-reference) · [CLI](#cli) · [How It Works](#how-it-works)
 
 </div>
+
+![](https://github.com/tjdwls101010/DUMOK/blob/main/Images/gemini-3-pro-1774234264741v5r4drcwf.png?raw=true)
 
 ---
 
