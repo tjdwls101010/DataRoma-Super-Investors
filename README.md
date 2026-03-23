@@ -4,9 +4,9 @@
 
 # superinvestor
 
-**Track what legendary investors buy and sell together.**
+**Python library & CLI for [DataRoma](https://www.dataroma.com) — track what legendary investors buy and sell together.**
 
-The only pip-installable library for superinvestor consensus data — see where Buffett, Ackman, Einhorn, and 79 other top investors agree.
+The only pip-installable library for DataRoma superinvestor consensus data — see where Buffett, Ackman, Einhorn, and 79 other top investors agree.
 
 [![PyPI](https://img.shields.io/pypi/v/superinvestor)](https://pypi.org/project/superinvestor/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-yellow)](#)
