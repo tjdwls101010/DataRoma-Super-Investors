@@ -8,35 +8,42 @@ from superinvestor.client import SI
 
 
 def main():
+    output_options = argparse.ArgumentParser(add_help=False)
+    output_options.add_argument(
+        "--json",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Output as JSON",
+    )
     parser = argparse.ArgumentParser(
         prog="superinvestor",
         description="Track what superinvestors buy and sell together",
+        parents=[output_options],
     )
     sub = parser.add_subparsers(dest="command")
 
     # holdings
-    p_holdings = sub.add_parser("holdings", help="Grand portfolio holdings")
+    p_holdings = sub.add_parser(
+        "holdings", help="Grand portfolio holdings", parents=[output_options]
+    )
     p_holdings.add_argument("-n", type=int, default=None, help="Top N results")
 
     # buys
-    p_buys = sub.add_parser("buys", help="Consensus buys")
+    p_buys = sub.add_parser("buys", help="Consensus buys", parents=[output_options])
     p_buys.add_argument("--period", default="q", choices=["q", "6m"], help="q=quarterly, 6m=6 months")
     p_buys.add_argument("-n", type=int, default=None, help="Top N results")
 
     # sells
-    p_sells = sub.add_parser("sells", help="Consensus sells")
+    p_sells = sub.add_parser("sells", help="Consensus sells", parents=[output_options])
     p_sells.add_argument("--period", default="q", choices=["q", "6m"], help="q=quarterly, 6m=6 months")
     p_sells.add_argument("-n", type=int, default=None, help="Top N results")
 
     # stock
-    p_stock = sub.add_parser("stock", help="Stock detail")
+    p_stock = sub.add_parser("stock", help="Stock detail", parents=[output_options])
     p_stock.add_argument("symbol", help="Stock ticker (e.g. AAPL)")
 
     # managers
-    sub.add_parser("managers", help="List all superinvestors")
-
-    # --json flag for all commands
-    parser.add_argument("--json", action="store_true", help="Output as JSON")
+    sub.add_parser("managers", help="List all superinvestors", parents=[output_options])
 
     args = parser.parse_args()
 
@@ -45,26 +52,27 @@ def main():
         sys.exit(1)
 
     si = SI()
+    as_json = getattr(args, "json", False)
 
     if args.command == "holdings":
         data = si.holdings(n=args.n)
-        _output(data, args.json, _format_holdings)
+        _output(data, as_json, _format_holdings)
 
     elif args.command == "buys":
         data = si.buys(period=args.period, n=args.n)
-        _output(data, args.json, _format_buys)
+        _output(data, as_json, _format_buys)
 
     elif args.command == "sells":
         data = si.sells(period=args.period, n=args.n)
-        _output(data, args.json, _format_sells)
+        _output(data, as_json, _format_sells)
 
     elif args.command == "stock":
         data = si.stock(args.symbol)
-        _output(data, args.json, _format_stock)
+        _output(data, as_json, _format_stock)
 
     elif args.command == "managers":
         data = si.managers()
-        _output(data, args.json, _format_managers)
+        _output(data, as_json, _format_managers)
 
 
 def _output(data, as_json: bool, formatter):

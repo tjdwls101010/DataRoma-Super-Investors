@@ -7,6 +7,9 @@ import re
 from superinvestor import scraper, parser
 
 
+_PERIOD_PARAMS = {"q": "q", "6m": "h"}
+
+
 class SI:
     """Client for querying superinvestor consensus data from DataRoma."""
 
@@ -19,6 +22,8 @@ class SI:
         Returns:
             List of dicts sorted by ownership count descending.
         """
+        _validate_limit(n)
+
         all_rows: list[dict] = []
         page = 1
 
@@ -55,7 +60,8 @@ class SI:
         Returns:
             List of dicts sorted by buy count descending.
         """
-        q = "q" if period == "q" else "h"
+        _validate_limit(n)
+        q = _period_param(period)
         html = scraper.fetch("g/portfolio_b.php", {"q": q})
         rows = parser.parse_grid_table(html)
 
@@ -79,7 +85,8 @@ class SI:
         Returns:
             List of dicts sorted by sell count descending.
         """
-        q = "q" if period == "q" else "h"
+        _validate_limit(n)
+        q = _period_param(period)
         html = scraper.fetch("g/portfolio_s.php", {"q": q})
         rows = parser.parse_grid_table(html)
 
@@ -251,3 +258,14 @@ def _safe_float(text: str) -> float | None:
         return float(text)
     except (ValueError, TypeError):
         return None
+
+
+def _period_param(period: str) -> str:
+    if not isinstance(period, str) or period not in _PERIOD_PARAMS:
+        raise ValueError('period must be "q" or "6m"')
+    return _PERIOD_PARAMS[period]
+
+
+def _validate_limit(n: int | None) -> None:
+    if n is not None and (isinstance(n, bool) or not isinstance(n, int) or n < 0):
+        raise ValueError("n must be a non-negative integer or None")
