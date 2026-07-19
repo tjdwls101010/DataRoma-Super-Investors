@@ -1,246 +1,135 @@
 <div align="center">
 
-<img src="https://png.pngtree.com/png-vector/20250423/ourmid/pngtree-stack-of-money-bundles-neatly-arranged-for-wealth-concept-png-image_16082003.png" width="120" alt="Money">
+<img src="https://github.com/tjdwls101010/tjdwls101010/blob/main/Images/superinvestor.png?raw=true" width="640" alt="superinvestor">
 
 # superinvestor
 
 **Python library & CLI for [DataRoma](https://www.dataroma.com) — track what legendary investors buy and sell together.**
 
-The only pip-installable library for DataRoma superinvestor consensus data — see where Buffett, Ackman, Einhorn, and 79 other top investors agree.
-
 [![PyPI](https://img.shields.io/pypi/v/superinvestor)](https://pypi.org/project/superinvestor/)
-[![Python](https://img.shields.io/badge/python-3.10%2B-yellow)](#)
-[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](#)
+[![Python](https://img.shields.io/pypi/pyversions/superinvestor)](https://pypi.org/project/superinvestor/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
-[Installation](#installation) · [Quick Start](#quick-start) · [API Reference](#api-reference) · [CLI](#cli) · [How It Works](#how-it-works)
+[Quick Start](#quick-start) · [Usage](#usage) · [Documentation](#documentation) · [Contributing](#contributing)
 
 </div>
 
-![](https://github.com/tjdwls101010/DUMOK/blob/main/Images/gemini-3-pro-1774234264741v5r4drcwf.png?raw=true)
-
 ---
 
-## Why This Project?
+## What & why
 
-A single investor buying a stock means nothing — they have their own context, biases, and constraints. But when **dozens of legendary investors independently buy the same stock**, that's a powerful signal.
+A single investor buying a stock tells you almost nothing — they have their own mandate, tax situation, and time horizon. But when **dozens of independent, highly-skilled investors buy the same stock in the same quarter**, that agreement is worth looking at.
 
-[DataRoma](https://www.dataroma.com) tracks 82 superinvestors' portfolios from SEC 13F filings. This library gives you **programmatic access** to their consensus — what they're buying together, selling together, and holding together.
+Every US institutional manager with over $100M under management must disclose their holdings to the SEC each quarter on **Form 13F**. [DataRoma](https://www.dataroma.com) aggregates those filings for a curated roster of "superinvestors" — Buffett, Ackman, Einhorn, Klarman, Li Lu, and dozens more — and publishes them as HTML tables.
 
-```python
-from superinvestor import SI
+`superinvestor` turns those tables into plain Python dicts and JSON. No API key, no account, no configuration — `pip install` and you have programmatic access to what the best investors in the world actually own.
 
-si = SI()
-si.buys(n=5)
-# [{'symbol': 'AMZN', 'name': 'Amazon.com Inc.', 'buy_count': 11, 'avg_hold_price': 230.82},
-#  {'symbol': 'META', 'name': 'Meta Platforms Inc.', 'buy_count': 10, 'avg_hold_price': 660.09},
-#  {'symbol': 'RKT', 'name': 'Rocket Companies Inc.', 'buy_count': 6, 'avg_hold_price': 19.36}, ...]
-```
+New to 13F filings? [**Core Concepts**](docs/wiki/Concepts.md) explains the filings, the consensus thesis, and the vocabulary in full.
 
-No API key needed. No config. Just `pip install` and go.
+## Key features
 
----
+- **Consensus-first** — surfaces what many investors are doing *together*, not one guru's picks.
+- **Five operations, one class** — holdings, buys, sells, per-stock detail, and the manager roster.
+- **Zero configuration** — no API key, no auth, no settings file.
+- **Library or CLI** — import it in Python, or run it in a terminal and pipe JSON to `jq`.
+- **Polite by default** — a built-in 1.5-second floor between requests, so you don't hammer the source.
+- **Plain data** — every result is a `dict` or `list[dict]`; no custom objects to learn.
 
-## Installation
+## Quick start
+
+**Prerequisites:** Python 3.10 or newer.
 
 ```bash
 pip install superinvestor
 ```
 
----
+Find the five stocks most superinvestors bought last quarter:
 
-## Quick Start
+```python
+from superinvestor import SI
+
+si = SI()
+si.buys(n=5)
+```
+
+```python
+[{'symbol': 'AMZN', 'name': 'Amazon.com Inc.',   'buy_count': 11, 'avg_hold_price': 230.82},
+ {'symbol': 'META', 'name': 'Meta Platforms Inc.', 'buy_count': 10, 'avg_hold_price': 660.09},
+ {'symbol': 'RKT',  'name': 'Rocket Companies Inc.', 'buy_count': 6, 'avg_hold_price': 19.36},
+ ...]
+```
+
+Or without writing any Python at all:
+
+```bash
+superinvestor buys -n 5
+```
+
+```
+Symbol   Name                                      Buys  Avg Price
+--------------------------------------------------------------------
+AMZN     Amazon.com Inc.                             11    $230.82
+META     Meta Platforms Inc.                         10    $660.09
+RKT      Rocket Companies Inc.                        6     $19.36
+```
+
+That's the whole setup. Full walkthrough: [**Getting Started**](docs/wiki/Getting-Started.md).
+
+## Usage
 
 ```python
 from superinvestor import SI
 
 si = SI()
 
-# What are superinvestors buying this quarter?
-si.buys(n=5)
-
-# What are they selling?
-si.sells(n=5)
-
-# Deep dive into a specific stock
-si.stock("AAPL")
-
-# Full consensus portfolio
-si.holdings(n=10)
-
-# List all 82 tracked superinvestors
-si.managers()
+si.buys(n=5)                  # what they're buying together this quarter
+si.sells(period="6m", n=5)    # what they're selling, over six months
+si.holdings(n=10)             # the grand consensus portfolio
+si.stock("AAPL")              # who holds one stock, and what they did with it
+si.managers()                 # every superinvestor DataRoma tracks
 ```
 
----
-
-## API Reference
-
-### `SI()`
-
-Create a client instance. No arguments needed.
-
-### `.holdings(n=None) → list[dict]`
-
-Grand portfolio — all stocks held by superinvestors, ranked by ownership count.
-
-```python
-si.holdings(n=3)
-# [{'symbol': 'AMZN', 'name': 'Amazon.com Inc.', 'ownership_count': 31,
-#   'max_pct': 33.10, 'avg_hold_price': 230.82}, ...]
-```
-
-| Field | Description |
-|-------|-------------|
-| `symbol` | Ticker symbol |
-| `name` | Company name |
-| `ownership_count` | Number of superinvestors holding this stock |
-| `max_pct` | Maximum portfolio allocation among holders (%) |
-| `avg_hold_price` | Weighted average hold price from 13F filings ($) |
-
-### `.buys(period="q", n=None) → list[dict]`
-
-Stocks being bought by multiple superinvestors.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `period` | str | `"q"` for quarterly (default), `"6m"` for 6 months |
-| `n` | int | Top N results. `None` for all |
-
-```python
-si.buys(period="6m", n=10)
-```
-
-### `.sells(period="q", n=None) → list[dict]`
-
-Stocks being sold by multiple superinvestors. Same parameters as `.buys()`.
-
-### `.stock(symbol) → dict`
-
-Deep dive into a specific stock: who holds it, quarterly activity trends, and consensus direction.
-
-```python
-si.stock("AAPL")
-# {
-#   'symbol': 'AAPL',
-#   'sector': 'Technology',
-#   'ownership_count': 18,
-#   'ownership_rank': 9,
-#   'avg_hold_price': 271.86,
-#   'quarterly_activity': [
-#     {'period': 'Q4 2025',
-#      'buy':    {'count': 0, 'shares': 0},
-#      'add':    {'count': 2, 'shares': 30100},
-#      'reduce': {'count': 11, 'shares': 13140548},
-#      'sell':   {'count': 1, 'shares': 11051},
-#      'net':    {'count': -10, 'shares': -13121499}},
-#     ...
-#   ],
-#   'holders': [
-#     {'manager': 'Warren Buffett', 'firm': 'Berkshire Hathaway',
-#      'portfolio_pct': 22.60, 'activity': 'Reduce',
-#      'activity_pct': 4.32, 'position_value': 61961735000},
-#     ...
-#   ]
-# }
-```
-
-**Activity types in `quarterly_activity`:**
-
-| Type | Meaning |
-|------|---------|
-| `buy` | New position opened |
-| `add` | Existing position increased |
-| `reduce` | Position decreased |
-| `sell` | Full exit (0 shares remaining) |
-| `net` | (buy + add) − (reduce + sell) |
-
-**Holder fields:**
-
-| Field | Description |
-|-------|-------------|
-| `manager` | Investor name |
-| `firm` | Fund/firm name |
-| `portfolio_pct` | % of this investor's portfolio in this stock |
-| `activity` | Most recent action: `Buy`, `Add`, `Reduce`, `Sell`, or `None` |
-| `activity_pct` | Magnitude of the action (%) |
-| `position_value` | Current position value ($) |
-
-### `.managers() → list[dict]`
-
-List all 82 superinvestors tracked by DataRoma.
-
-```python
-si.managers()
-# [{'name': 'Warren Buffett', 'firm': 'Berkshire Hathaway', 'code': 'BRK',
-#   'portfolio_value': '$274 B', 'num_stocks': 42,
-#   'top_holdings': ['AAPL', 'AXP', 'BAC', 'KO', 'CVX', ...]}, ...]
-```
-
----
-
-## CLI
-
-All functions are available from the command line.
+The same five operations from the shell, with `--json` on any of them:
 
 ```bash
-# Consensus buys (quarterly, top 5)
-superinvestor buys -n 5
-
-# Consensus buys (6 months)
-superinvestor buys --period 6m
-
-# Consensus sells
-superinvestor sells -n 10
-
-# Stock deep dive
-superinvestor stock AAPL
-
-# Grand portfolio
 superinvestor holdings -n 20
-
-# All superinvestors
-superinvestor managers
-
-# JSON output (for piping to jq, scripts, etc.)
-superinvestor buys -n 5 --json
+superinvestor buys --period 6m
+superinvestor stock AAPL
+superinvestor managers --json | jq '.[0]'
 ```
 
----
+Every method, parameter, and returned field is documented in the [**API Reference**](docs/wiki/API-Reference.md); every flag in the [**CLI Reference**](docs/wiki/CLI-Reference.md).
 
-## How It Works
+## Documentation
 
-### The Consensus Thesis
+Full documentation lives in [**`docs/wiki/`**](docs/wiki/README.md):
 
-> "If one investor buys a stock, it could mean anything. If ten legendary investors independently buy the same stock, pay attention."
+| Page | What's in it |
+|---|---|
+| [Overview](docs/wiki/Overview.md) | The problem, the approach, who it's for, and what it deliberately doesn't do |
+| [Getting Started](docs/wiki/Getting-Started.md) | Install to first result, step by step |
+| [Core Concepts](docs/wiki/Concepts.md) | 13F filings, the consensus thesis, buy/add/reduce/sell/net |
+| [API Reference](docs/wiki/API-Reference.md) | All five `SI` methods and every field they return |
+| [CLI Reference](docs/wiki/CLI-Reference.md) | Every command and flag |
+| [Architecture](docs/wiki/Architecture.md) | How the scraper, parser, and client fit together |
+| [Development](docs/wiki/Development.md) | Local setup, tests, and the release process |
 
-This library is built around the idea that **agreement among multiple independent, skilled investors** is a stronger signal than any single investor's picks. SEC 13F filings (required for institutional managers with $100M+ AUM) reveal what these investors actually own — not what they say on TV.
+## Project status
 
-### Data Source
+Stable and ready to use. The five `SI` methods and the dict keys they return are the project's public contract — build on them.
 
-All data comes from [DataRoma](https://www.dataroma.com), which aggregates SEC 13F filings for 82 carefully curated "superinvestors" including:
+`superinvestor` reads DataRoma's public HTML rather than a formal API, so the [Architecture](docs/wiki/Architecture.md) page documents how parsing behaves and what happens when the upstream layout shifts. Pinning a version in production is a good habit here.
 
-- Warren Buffett (Berkshire Hathaway)
-- Bill Ackman (Pershing Square)
-- David Einhorn (Greenlight Capital)
-- Seth Klarman (Baupost Group)
-- Li Lu (Himalaya Capital)
-- Terry Smith (Fundsmith)
-- And 76 more...
+## Contributing
 
-### Update Frequency
-
-13F filings are submitted **quarterly**, within 45 days of quarter end. DataRoma processes them as they become available. Real-time data reflects the latest filings.
-
----
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for setup and the PR process, and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community expectations. To report a security issue privately, see [SECURITY.md](SECURITY.md).
 
 ## Disclaimer
 
-This project is **not affiliated with DataRoma** or any of the investors tracked. Data is sourced from public SEC filings via DataRoma.
+This project is **not affiliated with DataRoma** or with any investor it tracks. Data originates from public SEC filings, retrieved via DataRoma.
 
-This tool is for **educational and research purposes only**. It is not financial advice. Past holdings do not predict future performance.
-
----
+It is provided for **educational and research purposes only** and is not financial advice. 13F filings are disclosed up to 45 days after quarter end and omit short positions and most non-US holdings, so they are a lagging, partial picture. Past holdings do not predict future performance.
 
 ## License
 
-MIT
+Released under the [MIT License](LICENSE).
